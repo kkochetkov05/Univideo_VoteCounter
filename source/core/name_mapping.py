@@ -1,4 +1,4 @@
-def map_name(formName):
+def is_name_in_db(formName):
     FormToDBName = {
         "Филология": [
             "Филология"
@@ -78,5 +78,7 @@ def map_name(formName):
         ]
     }
 
-    # if formName in FormToDBName:
-    #     return FormToDBName
+    if formName in FormToDBName:
+        return FormToDBName[formName]
+    else:
+        return False

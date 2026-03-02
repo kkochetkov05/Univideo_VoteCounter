@@ -1,26 +1,22 @@
 import pandas as pd
-from dataclasses import fields
+import os
 
-def export_ranked_list_to_excel(participants, filepath):
-    column_order = [
-        "Место",
-        "Факультет",
-        "Количество голосов"
-    ]
 
-    if not participants:
-        pd.DataFrame(columns=column_order).to_excel(filepath, index=False)
-        return
+def export_ranked_list_to_excel(ranked_df: pd.DataFrame, output_path: str = "output/ranked_list.xlsx"):
+    """
+    Экспортирует ранжированный список в Excel
 
-    data = []
-    for participant in participants:
-        row = {}
-        for col in column_order:
-            if col == "":
-                row[col] == ""
-            else:
-                row[col] = getattr(participant, col, "")
-        data.append(row)
+    Args:
+        ranked_df: DataFrame с колонками ['Место', 'Факультет', 'Голосов']
+        output_path: Путь для сохранения файла
+    """
 
-    df = pd.DataFrame(data, columns=column_order)
-    df.to_excel(filepath, index=False)
+    # Создаём директорию, если не существует
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Экспорт в Excel
+    ranked_df.to_excel(output_path, index=False, sheet_name='Рейтинг')
+
+    print(f"Результаты сохранены: {output_path}")

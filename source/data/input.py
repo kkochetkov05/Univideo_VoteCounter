@@ -35,4 +35,6 @@ def formate_tables(russianSTs, foreignerSTs):
     russianSTsTable = russianSTsTable.rename(columns=headers_rename_dict)
     foreignerSTsTable = foreignerSTsTable.rename(columns=headers_rename_dict)
 
-    return russianSTsTable, foreignerSTsTable
+    STs = pd.concat([russianSTsTable, foreignerSTsTable], ignore_index=True)
+
+    return STs
