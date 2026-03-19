@@ -1,136 +1,146 @@
-"""
-Модуль фильтрации и подсчёта голосов
-Здесь реализуется логика отбора строк и определения победителей
-"""
-
 import pandas as pd
 from typing import Union, List, Tuple
+from source.core.name_mapping import is_name_in_db
 
 
-def process_vote_row(row: pd.Series) -> Union[bool, Tuple[str, ...], List[str]]:
-    """
-    Обрабатывает одну строку голосования и определяет, засчитывается ли голос
+def _normalize_fio(name: str) -> str:
+    if not isinstance(name, str):
+        return ""
+    return name.replace("ё", "е").replace("Ё", "Е").strip()
 
-    Args:
-        row: Строка DataFrame с данными голосования
 
-    Returns:
-        - False: если голос не засчитывается
-        - tuple/list из 1-3 названий факультетов: если голос засчитывается
+def _extract_st_from_email(email: str) -> str:
+    if not isinstance(email, str) or "@" not in email:
+        return ""
+    return email.split("@", 1)[0].strip()
 
-    Пример:
-        >>> process_vote_row(row)
-        False  # голос не подходит
 
-        >>> process_vote_row(row)
-        ("Факультет информатики",)  # 1 голос
+def _get_student_record(STsdf: pd.DataFrame, st_code: str):
+    mask = STsdf["Корпоративный email"].apply(_extract_st_from_email) == st_code
+    matches = STsdf[mask]
+    if matches.empty:
+        return None
+    return matches.iloc[0]
 
-        >>> process_vote_row(row)
-        ("ФИТ", "ГФ", "ЭФ")  # 3 голоса
-    """
 
-    # ========================================
-    # ЗДЕСЬ ПИШИ СВОЮ ЛОГИКУ ОТБОРА
-    # ========================================
+def _get_faculty_choices(row: pd.Series) -> List[str]:
+    faculty_columns = [
+        "Филология",
+        "Медицина",
+        "Прикладная математика - процессы управления (ПМ-ПУ)",
+        "Биология",
+        "Клуб иностранных обучающихся (КИО)",
+        "Экономика",
+        "Математика и механика (МатМех)",
+        "Искусства",
+        "Физическая культура и спорт",
+        "Журналистика и массовые коммуникации (ВШЖиМК)",
+        "Математика и компьютерные науки (МКН)",
+        "Философия",
+        "Студенческие отряды",
+        "Психология",
+        "Востоковедение",
+        "Социология",
+        "Свободные искусства и науки",
+        "Политология",
+        "Химия",
+        "Международные отношения (ФМО)",
+        "Теология",
+        "Менеджмент (ВШМ)",
+        "Институт наук о Земле (ИНоЗ)",
+        "История",
+        "Юриспруденция",
+    ]
 
-    # Пример 1: Простейшая проверка (замени на свою)
-    # Проверяем, что есть имя и email
-    name = row.get('ФИО', '') or row.get('Имя', '')
-    email = row.get('email', '')
+    selected = []
+    for col in faculty_columns:
+        value = row.get(col, "")
+        if isinstance(value, (int, float)):
+            if pd.isna(value):
+                continue
+            if value > 0:
+                selected.append(col)
+        elif isinstance(value, str):
+            if value.strip():
+                selected.append(col)
+    return selected
 
-    if not name or not email:
-        return False  # Пропускаем строку
 
-    # Пример 2: Определение факультетов по ответам
-    # Предположим, в колонках есть выборы факультетов
-    faculty_choice_1 = row.get('Факультет 1', '')
-    faculty_choice_2 = row.get('Факультет 2', '')
-    faculty_choice_3 = row.get('Факультет 3', '')
+def _remove_own_faculty(selected: List[str], student_record: pd.Series) -> List[str]:
+    direction = student_record.get("Направление", "")
+    if not isinstance(direction, str) or not direction.strip():
+        return selected
 
-    # Собираем список непустых факультетов (до 3)
-    faculties = []
-    for choice in [faculty_choice_1, faculty_choice_2, faculty_choice_3]:
-        if choice and isinstance(choice, str) and choice.strip():
-            faculties.append(choice.strip())
+    result = []
+    for form_name in selected:
+        db_names = is_name_in_db(form_name)
+        if not db_names:
+            result.append(form_name)
+            continue
 
-    # Если нет ни одного факультета - пропускаем
-    if not faculties:
+        mapped = False
+        for db_name in db_names:
+            if db_name in direction:
+                mapped = True
+                break
+
+        if not mapped:
+            result.append(form_name)
+
+    return result
+
+
+def process_vote_row(
+    STsdf: pd.DataFrame, row: pd.Series
+) -> Union[bool, Tuple[str, ...], List[str]]:
+    name = row.get("ФИО", "")
+    st = row.get("st", "")
+
+    if not name or not st:
         return False
 
-    # Возвращаем от 1 до 3 факультетов
-    return tuple(faculties[:3])  # Ограничиваем до 3
+    student_record = _get_student_record(STsdf, str(st).strip())
+    if student_record is None:
+        return False
 
-    # ========================================
-    # Другие примеры логики:
-    # ========================================
+    fio_form = _normalize_fio(str(name))
+    fio_db = _normalize_fio(str(student_record.get("ФИО", "")))
+    if fio_form != fio_db:
+        return False
 
-    # Пример 3: Проверка типа студента
-    # is_russian = row.get('Тип', '') == 'Русский'
-    # if not is_russian:
-    #     return False
+    selected_faculties = _get_faculty_choices(row)
+    if not selected_faculties:
+        return False
 
-    # Пример 4: Проверка заполненности определённых полей
-    # required_fields = ['ФИО', 'email', 'Факультет']
-    # if not all(row.get(field, '') for field in required_fields):
-    #     return False
+    filtered_faculties = _remove_own_faculty(selected_faculties, student_record)
+    if not filtered_faculties or len(filtered_faculties) > 3:
+        return False
 
-    # Пример 5: Фильтрация по дате
-    # vote_date = row.get('Дата голосования')
-    # if pd.isna(vote_date) or vote_date < some_deadline:
-    #     return False
-
-    # Пример 6: Возврат одного факультета
-    # faculty = row.get('Выбранный факультет', '')
-    # if faculty:
-    #     return (faculty,)
-    # else:
-    #     return False
+    return tuple(filtered_faculties)
 
 
-def calculate_rankings(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Обрабатывает весь DataFrame и формирует ранжированный список
-
-    Args:
-        df: DataFrame со всеми данными голосования
-
-    Returns:
-        DataFrame с колонками: ['Факультет', 'Голосов', 'Место']
-    """
-
-    # Словарь для подсчёта голосов
+def calculate_rankings(STsdf: pd.DataFrame, votesdf: pd.DataFrame) -> pd.DataFrame:
     vote_counts = {}
 
-    # Проходим по каждой строке
-    for index, row in df.iterrows():
-        result = process_vote_row(row)
-
-        # Если False - пропускаем
+    for _, row in votesdf.iterrows():
+        result = process_vote_row(STsdf, row)
         if result is False:
             continue
 
-        # Если вернулись факультеты - засчитываем голоса
         if isinstance(result, (tuple, list)):
             for faculty in result:
                 vote_counts[faculty] = vote_counts.get(faculty, 0) + 1
 
-    # Создаём DataFrame с результатами
     if not vote_counts:
-        # Если нет ни одного голоса
-        return pd.DataFrame(columns=['Факультет', 'Голосов', 'Место'])
+        return pd.DataFrame(columns=["Факультет", "Голосов", "Место"])
 
-    results_df = pd.DataFrame([
-        {'Факультет': faculty, 'Голосов': count}
-        for faculty, count in vote_counts.items()
-    ])
-
-    # Сортируем по количеству голосов (по убыванию)
-    results_df = results_df.sort_values('Голосов', ascending=False).reset_index(drop=True)
-
-    # Добавляем колонку с местом
-    results_df['Место'] = range(1, len(results_df) + 1)
-
-    # Переупорядочиваем колонки
-    results_df = results_df[['Место', 'Факультет', 'Голосов']]
+    results_df = pd.DataFrame(
+        [{"Факультет": f, "Голосов": c} for f, c in vote_counts.items()]
+    )
+    results_df = results_df.sort_values("Голосов", ascending=False).reset_index(
+        drop=True
+    )
+    results_df["Место"] = range(1, len(results_df) + 1)
+    results_df = results_df[["Место", "Факультет", "Голосов"]]
 
     return results_df

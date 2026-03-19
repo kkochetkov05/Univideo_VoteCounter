@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import traceback
 from tkinter import Tk, Frame, Label, Entry, Button, filedialog, messagebox, StringVar
 from tkinter import ttk
 from config import CONFIG_FILE
@@ -11,12 +12,16 @@ class VoteCounterGUI:
     def __init__(self, master):
         self.master = master
         self.master.title("Univideo Vote Counter")
-        self.master.geometry("800x600")
+        self.master.geometry("1280x720")
         self.master.resizable(True, True)
+        self.master.rowconfigure(0, weight=3)   # конфиг
+        self.master.rowconfigure(1, weight=1)   # низ с кнопкой
+        self.master.columnconfigure(0, weight=1)
 
         # Переменные для путей
         self.russian_path = StringVar()
         self.foreigner_path = StringVar()
+        self.votes_path = StringVar()
         self.output_path = StringVar(value="output/ranked_list.xlsx")
 
         # Загрузка существующей конфигурации
@@ -34,34 +39,36 @@ class VoteCounterGUI:
                     config = json.load(f)
                     self.russian_path.set(config.get('RussianWorkbook', ''))
                     self.foreigner_path.set(config.get('ForeignerWorkbook', ''))
+                    self.votes_path.set(config.get('VotesWorkbook', ''))
                     self.output_path.set(config.get('OutputPath', 'output/ranked_list.xlsx'))
             except:
                 pass
 
     def create_config_window(self):
-        """Окно конфигурации"""
-        config_frame = Frame(self.master, bg='#fffffe', padx=30, pady=20)
-        config_frame.pack(fill='both', expand=True, padx=20, pady=(20, 10))
+        self.config_frame = Frame(self.master, bg='#fffffe', padx=30, pady=20)
+        self.config_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=(20, 10))
 
         # Заголовок
-        title = Label(config_frame, text="Конфигурация проекта",
+        title = Label(self.config_frame, text="Конфигурация проекта",
                       font=("Arial", 18, "bold"), bg='#fffffe', fg='#13343b')
         title.pack(pady=(0, 5))
 
-        subtitle = Label(config_frame, text="Укажите пути к файлам Excel с данными голосования",
+        subtitle = Label(self.config_frame, text="Укажите пути к файлам Excel",
                          font=("Arial", 10), bg='#fffffe', fg='#626c71')
         subtitle.pack(pady=(0, 20))
 
         # Поля ввода
-        self._create_file_field(config_frame, "Excel-файл с русскими студентами:",
+        self._create_file_field(self.config_frame, "Excel-файл с русскими студентами:",
                                 self.russian_path, self.browse_russian)
-        self._create_file_field(config_frame, "Excel-файл с иностранными студентами:",
+        self._create_file_field(self.config_frame, "Excel-файл с иностранными студентами:",
                                 self.foreigner_path, self.browse_foreigner)
-        self._create_file_field(config_frame, "Путь для сохранения результатов:",
+        self._create_file_field(self.config_frame, "Excel-файл с данными голосования:",
+                                self.votes_path, self.browse_votes)
+        self._create_file_field(self.config_frame, "Путь для сохранения результатов:",
                                 self.output_path, self.browse_output, is_output=True)
 
         # Кнопки действий
-        btn_frame = Frame(config_frame, bg='#fffffe')
+        btn_frame = Frame(self.config_frame, bg='#fffffe')
         btn_frame.pack(pady=20)
 
         save_btn = Button(btn_frame, text="Сохранить конфигурацию",
@@ -77,28 +84,24 @@ class VoteCounterGUI:
         load_btn.pack(side='left', padx=5)
 
     def create_main_window(self):
-        """Главное окно запуска"""
-        main_frame = Frame(self.master, bg='#fffffe', padx=30, pady=20)
-        main_frame.pack(fill='both', expand=True, padx=20, pady=(10, 20))
+        self.main_frame = Frame(self.master, bg='#fffffe', padx=30, pady=20)
+        self.main_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
 
-        # Разделитель
-        ttk.Separator(self.master, orient='horizontal').pack(fill='x', padx=20)
+        ttk.Separator(self.main_frame, orient='horizontal').pack(fill='x')
 
-        # Заголовок
-        title = Label(main_frame, text="Подсчёт голосов",
+        title = Label(self.main_frame, text="Подсчёт голосов",
                       font=("Arial", 18, "bold"), bg='#fffffe', fg='#13343b')
         title.pack(pady=(10, 5))
 
-        subtitle = Label(main_frame, text="Запустите обработку данных и формирование рейтинга победителей",
+        subtitle = Label(self.main_frame, text="Запустите обработку данных и формирование рейтинга победителей",
                          font=("Arial", 10), bg='#fffffe', fg='#626c71')
         subtitle.pack(pady=(0, 20))
 
-        # Кнопка запуска
-        run_btn = Button(main_frame, text="Запустить обработку",
+        run_btn = Button(self.main_frame, text="Запустить обработку",
                          command=self.run_processing, bg='#21808d', fg='white',
                          font=("Arial", 14, "bold"), padx=40, pady=15,
                          relief='flat', cursor='hand2')
-        run_btn.pack(pady=30)
+        run_btn.pack(pady=10)
 
     def _create_file_field(self, parent, label_text, var, browse_cmd, is_output=False):
         """Создание поля для файла с кнопкой обзора"""
@@ -142,6 +145,14 @@ class VoteCounterGUI:
         if path:
             self.foreigner_path.set(path)
 
+    def browse_votes(self):
+        path = filedialog.askopenfilename(
+            title="Выберите файл с данными голосования",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
+        )
+        if path:
+            self.votes_path.set(path)
+
     def browse_output(self):
         path = filedialog.asksaveasfilename(
             title="Укажите путь для сохранения результатов",
@@ -155,15 +166,17 @@ class VoteCounterGUI:
         """Сохранение конфигурации в config.json"""
         russian = self.russian_path.get().strip()
         foreigner = self.foreigner_path.get().strip()
+        votes = self.votes_path.get().strip()
         output = self.output_path.get().strip()
 
-        if not russian or not foreigner:
+        if not russian or not foreigner or not votes:
             messagebox.showerror("Ошибка", "Заполните все обязательные поля!")
             return
 
         config = {
             "RussianWorkbook": russian,
             "ForeignerWorkbook": foreigner,
+            "VotesWorkbook": votes,
             "OutputPath": output
         }
 
@@ -185,6 +198,7 @@ class VoteCounterGUI:
                 config = json.load(f)
                 self.russian_path.set(config.get('RussianWorkbook', ''))
                 self.foreigner_path.set(config.get('ForeignerWorkbook', ''))
+                self.votes_path.set(config.get('VotesWokrbook', ''))
                 self.output_path.set(config.get('OutputPath', 'output/ranked_list.xlsx'))
             messagebox.showinfo("Успех", "Конфигурация загружена!")
         except Exception as e:
@@ -201,11 +215,13 @@ class VoteCounterGUI:
             start()  # Вызов вашего pipeline
             messagebox.showinfo("Успех", "Обработка завершена!\nРезультаты сохранены в Excel-файл")
         except Exception as e:
+            traceback.print_exc()
             messagebox.showerror("Ошибка", f"Ошибка при обработке:\n{e}")
 
 
 def main():
     root = Tk()
+    root.state('zoomed')  # окно сразу развернуто на весь экран
     app = VoteCounterGUI(root)
     root.mainloop()
 

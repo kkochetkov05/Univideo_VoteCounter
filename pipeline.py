@@ -15,23 +15,26 @@ def start():
     config = load_config(CONFIG_FILE)
     russian_STs_path = config['RussianWorkbook']
     foreigner_STs_path = config['ForeignerWorkbook']
+    votes_path = config['VotesWorkbook']
     output_path = config.get('OutputPath', 'output/ranked_list.xlsx')
 
     # Загрузка файлов
-    files = load_requied_files({
-        'russianSTs': russian_STs_path,
-        'foreignerSTs': foreigner_STs_path
-    })
+    files = load_requied_files(
+        russianSTs=russian_STs_path,
+        foreignerSTs=foreigner_STs_path,
+        votes=votes_path
+    )
 
     russian_STs = files['russianSTs']
     foreigner_STs = files['foreignerSTs']
+    votes = files['votes']
 
     # Форматирование таблиц
-    STs = formate_tables(russian_STs, foreigner_STs)
+    STsTable, votesTable = formate_tables(russian_STs, foreigner_STs, votes)
 
     # Обработка голосов и формирование рейтинга
     try:
-        ranked_df = calculate_rankings(STs)
+        ranked_df = calculate_rankings(STsTable, votesTable)
 
         # Экспорт результатов
         export_ranked_list_to_excel(ranked_df, output_path)
