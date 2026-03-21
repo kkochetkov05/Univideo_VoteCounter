@@ -69,7 +69,7 @@ Univideo_VoteCounter/
   - загружает Excel‑файлы через `source.data.input`;
   - форматирует таблицы (STs и голоса);
   - фильтрует голоса по дате;
-  - считает рейтинги факультетов (`calculate_rankings`);
+  - считает рейтинги факультетов (`build_result_table`);
   - сохраняет результат в Excel через `source.data.output`.
 
 - **config.py**  
