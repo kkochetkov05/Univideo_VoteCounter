@@ -1,22 +1,13 @@
-import pandas as pd
-import os
 import tkinter as tk
-from tkinter import messagebox
-import json
-import sys
-
-from config import CONFIG_FILE
+from gui import VoteCounterGUI
 
 
 def main():
-    if os.path.exists(CONFIG_FILE) and os.path.getsize(CONFIG_FILE) > 0:
-        root = tk.Tk()
-#        app = SecondPhaseApp(root)
-    else:
-        root = tk.Tk()
-#        app = FirstPhaseApp(root)
-
+    root = tk.Tk()
+    root.state('zoomed')  # сразу на весь экран, можно убрать если не нужно
+    app = VoteCounterGUI(root)
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()

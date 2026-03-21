@@ -6,6 +6,7 @@ from config import CONFIG_FILE
 from source.data.input import load_config, load_requied_files, formate_tables
 from source.core.vote_filter import calculate_rankings
 from source.data.output import export_ranked_list_to_excel
+import pandas as pd
 
 
 def start():
@@ -14,26 +15,46 @@ def start():
     # Загрузка конфигурации
     config = load_config(CONFIG_FILE)
     russian_STs_path = config['RussianWorkbook']
-    foreigner_STs_path = config['ForeignerWorkbook']
+    KIO_STs_path = config['KIOWorkbook']
+    study_STs_path = config['studyWorkbook']
+    AG_STs_path = config['AGWorkbook']
+
     votes_path = config['VotesWorkbook']
     output_path = config.get('OutputPath', 'output/ranked_list.xlsx')
 
     # Загрузка файлов
     files = load_requied_files(
         russianSTs=russian_STs_path,
-        foreignerSTs=foreigner_STs_path,
+        KIOSTs=KIO_STs_path,
+        studySTs=study_STs_path,
+        AGSTs=AG_STs_path,
         votes=votes_path
     )
 
     russian_STs = files['russianSTs']
-    foreigner_STs = files['foreignerSTs']
+    KIO_STs = files['KIOSTs']
+    study_STs = files['studySTs']
+    AG_STs = files['AGSTs']
     votes = files['votes']
 
     # Форматирование таблиц
-    STsTable, votesTable = formate_tables(russian_STs, foreigner_STs, votes)
+    STsTable, AGSTsTable, votesTable = formate_tables(russian_STs, KIO_STs, AG_STs, study_STs, votes)
+    date_str = config.get('date', '').strip()  # "2026-03-02"
+
+    if date_str:
+        # приводим столбец к строкам
+        col = votesTable['Время создания'].astype(str)
+
+        # вытащим сначала чисто даты, чтобы убедиться, что формат тот
+        print(col.head())
+        print(col.str.split(' ').str[0].head())
+
+        dates_only = col.str.split(' ').str[0]
+        votesTable = votesTable[dates_only == date_str]
 
     # Обработка голосов и формирование рейтинга
     try:
+
         ranked_df = calculate_rankings(STsTable, votesTable)
 
         # Экспорт результатов
@@ -95,4 +116,4 @@ def start():
             f"Произошла ошибка:\n\n{exc_type.__name__}\n{str(exc_value)[:150]}\n\nПодробности в консоли."
         )
         root.destroy()
-        raise
+        raise error_message

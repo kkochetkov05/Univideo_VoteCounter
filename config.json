@@ -1,6 +1,9 @@
 {
-  "RussianWorkbook": "C:/Users/kirill.kochetkov/Downloads/русские для Уни.xlsx",
-  "ForeignerWorkbook": "C:/Users/kirill.kochetkov/Downloads/inostrantsy.xlsx",
-  "VotesWorkbook": "C:/Users/kirill.kochetkov/Downloads/2026-03-03 Голосование.xlsx",
-  "OutputPath": "C:/Users/kirill.kochetkov/Downloads/2026-03-02 Новая форма.xlsx"
+  "RussianWorkbook": "C:/Users/kirill.kochetkov/PycharmProjects/Univideo_VoteCounter/ExcelWorkbooks/Russkie.xlsx",
+  "KIOWorkbook": "C:/Users/kirill.kochetkov/PycharmProjects/Univideo_VoteCounter/ExcelWorkbooks/KIO.xlsx",
+  "studyWorkbook": "C:/Users/kirill.kochetkov/PycharmProjects/Univideo_VoteCounter/ExcelWorkbooks/study.xlsx",
+  "AGWorkbook": "C:/Users/kirill.kochetkov/PycharmProjects/Univideo_VoteCounter/ExcelWorkbooks/логин_АГ.xlsx",
+  "VotesWorkbook": "C:/Users/kirill.kochetkov/Downloads/2026-03-21 Голосование.xlsx",
+  "OutputPath": "C:/Users/kirill.kochetkov/Downloads/новый.xlsx",
+  "date": "2026-03-20"
 }
