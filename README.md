@@ -24,12 +24,6 @@ Univideo_VoteCounter/
 ├─ dist/
 │  └─ UnivideoVoteCounter.exe          - запуск программы
 │
-├─ ExcelWorkbooks/
-│  ├─ Russkie.xlsx                     - русские студенты (STs)
-│  ├─ KIO.xlsx                         - иностранные студенты / КИО (STs)
-│  ├─ study.xlsx                       - дополнительный список студентов лицея (STs)
-│  └─ логин_AG.xlsx                    - логины Академической гимназии (студ. отряд?)
-│
 ├─ source/
 │  ├─ core/
 │  │  ├─ name_mapping.py               - маппинг названий факультетов формы к БД
