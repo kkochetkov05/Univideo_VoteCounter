@@ -21,10 +21,6 @@
 ### Архитектура проекта:
 ```
 Univideo_VoteCounter/
-├─ build/
-│  ├─ UnivideoVoteCounter              - русские студенты (STs)
-│  │  └─ ...                           - обертка проекта в .exe
-│
 ├─ dist/
 │  └─ UnivideoVoteCounter.exe          - запуск программы
 │
