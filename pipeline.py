@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter import messagebox
 from config import CONFIG_FILE
 from source.data.input import load_config, load_requied_files, formate_tables
-from source.core.vote_filter import calculate_rankings
-from source.data.output import export_ranked_list_to_excel
+from source.core.vote_filter import build_result_table
+from source.data.output import export_results_to_excel
 import pandas as pd
 
 
@@ -45,20 +45,14 @@ def start():
         # приводим столбец к строкам
         col = votesTable['Время создания'].astype(str)
 
-        # вытащим сначала чисто даты, чтобы убедиться, что формат тот
-        print(col.head())
-        print(col.str.split(' ').str[0].head())
-
         dates_only = col.str.split(' ').str[0]
         votesTable = votesTable[dates_only == date_str]
 
     # Обработка голосов и формирование рейтинга
     try:
 
-        ranked_df = calculate_rankings(STsTable, votesTable)
-
-        # Экспорт результатов
-        export_ranked_list_to_excel(ranked_df, output_path)
+        result_df = build_result_table(STsTable, votesTable)
+        export_results_to_excel(result_df, output_path)
 
         # Успешное завершение
         root = tk.Tk()

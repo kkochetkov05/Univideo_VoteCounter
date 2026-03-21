@@ -52,12 +52,9 @@ def formate_tables(russianSTs, KIOSTs, AGSTs, studySTs, votes):
     AGSTsTable.columns = ['Корпоративный email', 'Направление']
 
     STsTable = pd.concat([russianSTsTable, KIOSTsTable, studySTsTable, AGSTsTable], ignore_index=True)
-    pd.set_option('display.max_columns', None)
-    print(STsTable.columns)
-    print(STsTable)
 
-    votesTable = votes_sheet.iloc[0:, 1:17]
-    votesTable.columns = ['Время создания', 'Статус',
+    votesTable = votes_sheet.iloc[0:, 0:17]
+    votesTable.columns = ['ID', 'Время создания', 'Статус',
        'st',
        'ФИО',
        'Студенческие отряды',
