@@ -100,4 +100,4 @@ Univideo_VoteCounter/
   - `formate_tables` - приведение таблиц к единому формату (столбцы `st`, `ФИО`, направления, факультеты).
 
 - **source/data/output.py**  
-  - `export_ranked_list_to_excel` - сохранение ранжированного списка факультетов в Excel‑файл.
+  - `export_results_to_excel` - сохранение ранжированного списка факультетов в Excel‑файл.
