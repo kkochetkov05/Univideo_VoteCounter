@@ -4,6 +4,7 @@
 #### Пользователь:
 ```/dist/UnivideoVoteCounter.exe```
 ##### Разработчик:
++ ```git clone https://github.com/kkochetkov05/Univideo_VoteCounter```
 + Создать виртуальное окружение (желательно)
 + ```pip install -r requirements.txt```
 + ```python main.py```
