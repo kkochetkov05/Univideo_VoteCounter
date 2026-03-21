@@ -31,7 +31,7 @@ Univideo_VoteCounter/
 │  │
 │  ├─ data/
 │  │  ├─ input.py                      - загрузка конфигурации и Excel, форматирование таблиц
-│  │  └─ output.py                     - экспорт ранжированного списка в Excel
+│  │  └─ output.py                     - экспорт результатов в Excel
 │
 ├─ config.json                         - текущая конфигурация путей и даты
 ├─ config.py                           - константы и путь к CONFIG_FILE
